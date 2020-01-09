@@ -11,17 +11,19 @@ PS. The telegram group is great as well!
 
 - [x] echo 
 
-- [ ] pomodoro timer
+- [x] pomodoro timer
 
 - [ ] schedule text
 
 ---
 
 #### echo
-echos every single message.
+echos every single message
 
 #### pomodoro
-texts at every 25/5 minutes chunks, for 25minute study chunks and breaks
+- texts at every 25/5 minutes chunks, for 25minute study chunks and breaks
+- The pomodoro timer has been done for now - making use of time.sleep() for now
+- further customizations would be to allow for input of study & break time
 
 #### schedule text
 sends a text every morning detailing my schedule for the day
