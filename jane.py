@@ -3,6 +3,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import InlineQueryHandler
 import login
+import time
 
 import telegram.ext
 from telegram.ext import Updater
@@ -26,9 +27,20 @@ logger = logging.getLogger(__name__)
 #
 # Error handlers also receive the raised TelegramError object in error.
 
+##############################
+# What is update and context #
+##############################
+# From printing, we note that update is a json file detailing all the details of the bot.
+# Every update refers to an individual object from someone that texted the bot
+# for context, it refers to telegram.ext.callbackcontext.CallbackContext object at 0x107581b00
+# Some sort of object.
+
 
 def start(update, context):
     """Send a message when the command /start is issued."""
+    print(update)
+    print("\n")
+    print(context)
     update.message.reply_text('*Hi*, I\'m Jane, _your_ assistant <3!', parse_mode='Markdown')
 
 
@@ -47,12 +59,6 @@ def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
-
-'''
-def upper_case(update, context):
-    """Lower cases the message"""
-    update.message.reply_text(update.message.text.upper())
-'''
 
 
 def caps(update, context):
@@ -95,9 +101,13 @@ def unknown(update, context):
 def alarm(context):
     """Send the alarm message."""
     job = context.job
-    context.bot.send_message(job.context, text='Beep!')
+    print("bro")
+    context.bot.send_message(job.context, text='Yo take a break!')
 
 
+
+
+'''
 def set_timer(update, context):
     """Add a job to the queue."""
     chat_id = update.message.chat_id
@@ -109,14 +119,14 @@ def set_timer(update, context):
             return
 
         # Add job to queue and stop current one if there is a timer already
-        new_job = context.job_queue.run_once(alarm, due, context=chat_id)
+        new_job = context.job_queue.run_once(alarm(due), due, context=chat_id)
         context.chat_data['job'] = new_job
 
         update.message.reply_text('Timer successfully set!')
 
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /set <seconds>')
-
+'''
 
 def unset(update, context):
     """Remove the job if the user changed their mind."""
@@ -130,7 +140,7 @@ def unset(update, context):
 
     update.message.reply_text('Timer successfully unset!')
 
-
+'''
 def one_chunk(update, context):
     """Add a job to the queue."""
     chat_id = update.message.chat_id
@@ -151,7 +161,7 @@ def one_chunk(update, context):
 
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /set <seconds>')
-
+'''
 #def callback_minute(context: telegram.ext.CallbackContext):
 #    context.bot.send_message(chat_id='@examplechannel',
 #                             text='One message every minute')
@@ -163,24 +173,27 @@ def study_chunk(update, context):
     chat_id = update.message.chat_id
     try:
         no_of_chunks = int(context.args[0])
-        print(no_of_chunks)
-        counter = 1
-        for i in range (no_of_chunks):
-            if counter % 2 == 0:
-                new_job = context.job_queue.run_once(alarm, 10, context=chat_id)
-                context.chat_data['job'] = new_job
-                update.message.reply_text('Take a break brah!'.format(10))
-                print("sleep awhile for 10")
-                context.sleep(10)
+        t = time.localtime()
+        current_time = time.strftime("%H:%M", t)
+        update.message.reply_text('You have chosen to have {} study chunks. Starting now @ {}.'.format(no_of_chunks,
+                                                                                                       current_time))
 
-            else:
-                new_job = context.job_queue.run_once(alarm, 20, context=chat_id)
-                context.chat_data['job'] = new_job
-                update.message.reply_text('Lets go for the grind!'.format(20))
-                print("sleep awhile for 20")
 
-                context.sleep(20)
-            counter += 1
+        for i in range(1,no_of_chunks+1):
+            update.message.reply_text('Please begin chunk #{} now @ {}'.format(i, current_time))
+            time_for_study = 60 * 25
+            time_for_break = 60 * 5
+            time.sleep(time_for_study)
+            t = time.localtime()
+            current_time = time.strftime("%H:%M", t)
+            update.message.reply_text('You have completed chunk number {} at {}'.format(i, current_time))
+            update.message.reply_text('Please take your {} break now for 5 minutes.'.format(i))
+            time.sleep(time_for_break)
+            update.message.reply_text('Your break has ended at {}. Please get back to work.'.format(current_time))
+            update.message.reply_text('----\n')
+
+
+
 
     except (IndexError, ValueError):
         update.message.reply_text('Not working bro')
@@ -209,15 +222,15 @@ def main():
     dp.add_handler(CommandHandler("caps", caps))
     dp.add_handler(InlineQueryHandler(inline_caps))
 
-    dp.add_handler(CommandHandler("set", set_timer,
+    '''dp.add_handler(CommandHandler("set", set_timer,
                                   pass_args=True,
                                   pass_job_queue=True,
-                                  pass_chat_data=True))
+                                  pass_chat_data=True))'''
     dp.add_handler(CommandHandler("unset", unset, pass_chat_data=True))
-    dp.add_handler(CommandHandler("one_chunk", one_chunk,
+    '''dp.add_handler(CommandHandler("one_chunk", one_chunk,
                                   pass_args=True,
                                   pass_job_queue=True,
-                                  pass_chat_data=True))
+                                  pass_chat_data=True))'''
 
     dp.add_handler(CommandHandler("study_chunk", study_chunk,
                                   pass_args=True,
