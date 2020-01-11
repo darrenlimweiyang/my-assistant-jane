@@ -5,7 +5,7 @@ from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import InlineQueryHandler
 import login
 import time
-import datetime
+from datetime import datetime
 import pickle
 import os.path
 from googleapiclient.discovery import build
@@ -111,6 +111,7 @@ def alarm(context):
     print("bro")
     context.bot.send_message(job.context, text='Yo take a break!')
 
+
 def getting_events(update, context):
     if os.path.exists("token.pickle"):
         # check if the file token.pickle exists in the same directory
@@ -118,12 +119,8 @@ def getting_events(update, context):
         with open("token.pickle", "rb") as token:
             creds = pickle.load(token)
     service = build('calendar', 'v3', credentials=creds)
-
-    print('stage 1')
-
     # Call the Calendar API
     now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-    print('Getting the upcoming 3 events')
     events_result = service.events().list(calendarId='primary', timeMin=now,
                                           maxResults=3, singleEvents=True,
                                           orderBy='startTime').execute()
@@ -132,8 +129,20 @@ def getting_events(update, context):
 
     if not events:
         print('No upcoming events found.')
+
     for event in events:
+        print("poop")
+        print(event['start'])
+        date_string = event['start']['dateTime']
+        datetime.datetime.strptime(date_string, format)
+
         start = event['start'].get('dateTime', event['start'].get('date'))
+        event_name = event['summary']
+        event_date = start
+        print(event_name)
+        new_list = event_date.split('T')
+        new_list[1] = new_list[1].split('+')
+        print(new_list)
         event = (start, event['summary'])
         update.message.reply_text(event)
 
