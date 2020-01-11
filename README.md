@@ -18,7 +18,7 @@ PS. The telegram group is great as well!
 ---
 
 #### echo
-echos every single message
+- echos every single message
 
 #### pomodoro
 - texts at every 25/5 minutes chunks, for 25minute study chunks and breaks
@@ -26,7 +26,11 @@ echos every single message
 - further customizations would be to allow for input of study & break time
 
 #### schedule text
-sends a text every morning detailing my schedule for the day
+- when called, the bot will send a message containing today's schedule
+
+#### to-do list
+- possibly connect with [todoist](https://developer.todoist.com/sync/v8/)
+- separate todo list inside the bot, will require a way of storing information
 
 
 cheers! feel free to [contact](darrenlimweiyang@gmail.com) me
