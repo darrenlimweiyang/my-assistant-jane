@@ -133,8 +133,8 @@ password.*
 # login information for the telegram bot (API key)
 login.py
 
-# google calendar api login
+# GOOGLE CALENDAR
+# google calendar api login 
 token.pickle 
-
 # credentials required when logging into google calendar api
 credentials.json

@@ -1,9 +1,16 @@
+from __future__ import print_function
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import InlineQueryHandler
 import login
 import time
+import datetime
+import pickle
+import os.path
+from googleapiclient.discovery import build
+#from google_auth_oauthlib.flow import InstalledAppFlow
+#from google.auth.transport.requests import Request
 
 import telegram.ext
 from telegram.ext import Updater
@@ -104,7 +111,31 @@ def alarm(context):
     print("bro")
     context.bot.send_message(job.context, text='Yo take a break!')
 
+def getting_events(update, context):
+    if os.path.exists("token.pickle"):
+        # check if the file token.pickle exists in the same directory
+        print('poo')
+        with open("token.pickle", "rb") as token:
+            creds = pickle.load(token)
+    service = build('calendar', 'v3', credentials=creds)
 
+    print('stage 1')
+
+    # Call the Calendar API
+    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    print('Getting the upcoming 3 events')
+    events_result = service.events().list(calendarId='primary', timeMin=now,
+                                          maxResults=3, singleEvents=True,
+                                          orderBy='startTime').execute()
+    events = events_result.get('items', [])
+    print('stage 2')
+
+    if not events:
+        print('No upcoming events found.')
+    for event in events:
+        start = event['start'].get('dateTime', event['start'].get('date'))
+        event = (start, event['summary'])
+        update.message.reply_text(event)
 
 
 '''
@@ -177,8 +208,6 @@ def study_chunk(update, context):
         current_time = time.strftime("%H:%M", t)
         update.message.reply_text('You have chosen to have {} study chunks. Starting now @ {}.'.format(no_of_chunks,
                                                                                                        current_time))
-
-
         for i in range(1,no_of_chunks+1):
             update.message.reply_text('Please begin chunk #{} now @ {}'.format(i, current_time))
             time_for_study = 60 * 25
@@ -227,15 +256,12 @@ def main():
                                   pass_job_queue=True,
                                   pass_chat_data=True))'''
     dp.add_handler(CommandHandler("unset", unset, pass_chat_data=True))
-    '''dp.add_handler(CommandHandler("one_chunk", one_chunk,
-                                  pass_args=True,
-                                  pass_job_queue=True,
-                                  pass_chat_data=True))'''
-
     dp.add_handler(CommandHandler("study_chunk", study_chunk,
                                   pass_args=True,
                                   pass_job_queue=True,
                                   pass_chat_data=True))
+
+    dp.add_handler(CommandHandler("today_schedule", getting_events))
 
     dp.add_handler(MessageHandler(Filters.command, unknown))
 

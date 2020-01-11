@@ -17,10 +17,17 @@ def main():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
+    # https://www.geeksforgeeks.org/python-os-path-exists-method/
     if os.path.exists("token.pickle"):
+        # check if the file token.pickle exists in the same directory
+        print('poo')
         with open("token.pickle", "rb") as token:
             creds = pickle.load(token)
+    # loads credentials if it exists
+
+
     # If there are no (valid) credentials available, let the user log in.
+    # after first authentication, no longer needed
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
