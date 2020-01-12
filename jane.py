@@ -1,5 +1,6 @@
 from __future__ import print_function
 import logging
+import test_func
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import InlineQueryHandler
@@ -9,8 +10,7 @@ from datetime import datetime
 import pickle
 import os.path
 from googleapiclient.discovery import build
-#from google_auth_oauthlib.flow import InstalledAppFlow
-#from google.auth.transport.requests import Request
+
 
 import telegram.ext
 from telegram.ext import Updater
@@ -43,34 +43,9 @@ logger = logging.getLogger(__name__)
 # Some sort of object.
 
 
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    print(update)
-    print("\n")
-    print(context)
-    update.message.reply_text('*Hi*, I\'m Jane, _your_ assistant <3!', parse_mode='Markdown')
-
-
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('What do you need help with!!')
-
-
-def echo(update, context):
-    """Echo the user message."""
-    print(update.message.text)
-    update.message.reply_text(update.message.text)
-
-
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
-
-
-
-def caps(update, context):
-    text_caps = ' '.join(context.args).upper()
-    context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
 
 
 def inline_caps(update, context):
@@ -135,7 +110,6 @@ def getting_events(update, context):
         print(event['start'])
         date_string = event['start']['dateTime']
         datetime.datetime.strptime(date_string, format)
-
         start = event['start'].get('dateTime', event['start'].get('date'))
         event_name = event['summary']
         event_date = start
@@ -167,6 +141,7 @@ def set_timer(update, context):
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /set <seconds>')
 '''
+
 
 def unset(update, context):
     """Remove the job if the user changed their mind."""
@@ -202,11 +177,6 @@ def one_chunk(update, context):
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /set <seconds>')
 '''
-#def callback_minute(context: telegram.ext.CallbackContext):
-#    context.bot.send_message(chat_id='@examplechannel',
-#                             text='One message every minute')
-
-#job_minute = j.run_repeating(callback_minute, interval=60, first=0)
 
 
 def study_chunk(update, context):
@@ -218,6 +188,8 @@ def study_chunk(update, context):
         update.message.reply_text('You have chosen to have {} study chunks. Starting now @ {}.'.format(no_of_chunks,
                                                                                                        current_time))
         for i in range(1,no_of_chunks+1):
+            t = time.localtime()
+            current_time = time.strftime("%H:%M", t)
             update.message.reply_text('Please begin chunk #{} now @ {}'.format(i, current_time))
             time_for_study = 60 * 25
             time_for_break = 60 * 5
@@ -230,12 +202,8 @@ def study_chunk(update, context):
             update.message.reply_text('Your break has ended at {}. Please get back to work.'.format(current_time))
             update.message.reply_text('----\n')
 
-
-
-
     except (IndexError, ValueError):
         update.message.reply_text('Not working bro')
-
 
 
 def main():
@@ -252,12 +220,12 @@ def main():
     # on different commands - answer in Telegram
     # https://python-telegram-bot.readthedocs.io/en/stable/telegram.ext.commandhandler.html
     # Handler class listening for telegram commands
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("start", test_func.start))
+    dp.add_handler(CommandHandler("help", test_func.help))
 
     # on non - command i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, echo))
-    dp.add_handler(CommandHandler("caps", caps))
+    dp.add_handler(MessageHandler(Filters.text, test_func.echo))
+    dp.add_handler(CommandHandler("caps", test_func.caps))
     dp.add_handler(InlineQueryHandler(inline_caps))
 
     '''dp.add_handler(CommandHandler("set", set_timer,
