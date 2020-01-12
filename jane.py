@@ -6,10 +6,13 @@ from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import InlineQueryHandler
 import login
 import time
+import datetime as dt
 from datetime import datetime
 import pickle
 import os.path
 from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 
 
 import telegram.ext
@@ -88,37 +91,58 @@ def alarm(context):
 
 
 def getting_events(update, context):
-    if os.path.exists("token.pickle"):
-        # check if the file token.pickle exists in the same directory
-        print('poo')
-        with open("token.pickle", "rb") as token:
+    """Shows basic usage of the Google Calendar API.
+        Prints the start and name of the next 10 events on the user's calendar.
+        """
+    days_of_week = ("ISO Week days start from 1",
+                     "Monday",
+                     "Tuesday",
+                     "Wednesday",
+                     "Thursday",
+                     "Friday",
+                     "Saturday",
+                     "Sunday" )
+    SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+    creds = None
+    # The file token.pickle stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
     service = build('calendar', 'v3', credentials=creds)
+
     # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    now = dt.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    print('Getting the upcoming 10 events')
     events_result = service.events().list(calendarId='primary', timeMin=now,
-                                          maxResults=3, singleEvents=True,
+                                          maxResults=5, singleEvents=True,
                                           orderBy='startTime').execute()
     events = events_result.get('items', [])
-    print('stage 2')
 
     if not events:
         print('No upcoming events found.')
-
     for event in events:
-        print("poop")
-        print(event['start'])
-        date_string = event['start']['dateTime']
-        datetime.datetime.strptime(date_string, format)
         start = event['start'].get('dateTime', event['start'].get('date'))
-        event_name = event['summary']
-        event_date = start
-        print(event_name)
-        new_list = event_date.split('T')
-        new_list[1] = new_list[1].split('+')
-        print(new_list)
         event = (start, event['summary'])
-        update.message.reply_text(event)
+
+        event_start = datetime.strptime(event[0].split("T")[1].split("+")[0], "%H:%M:%S").strftime("%I:%M %p")
+        datetime_obj = datetime.strptime(event[0].split("T")[0], '%Y-%M-%d')
+        week_day = days_of_week[datetime_obj.isoweekday()]
+        update.message.reply_text("For *{}*, ".format(week_day) + "\n"
+                                  "    {} starts at {}".format(event[1], event_start), parse_mode='Markdown')
 
 
 '''
