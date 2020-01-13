@@ -7,7 +7,7 @@ from telegram.ext import InlineQueryHandler
 import login
 import time
 import datetime as dt
-from datetime import datetime
+from datetime import datetime, timedelta
 import pickle
 import os.path
 from googleapiclient.discovery import build
@@ -90,7 +90,8 @@ def alarm(context):
     context.bot.send_message(job.context, text='Yo take a break!')
 
 
-def getting_events(update, context):
+def my_schedule(update, context):
+    num_of_events = context.args[0]
     """Shows basic usage of the Google Calendar API.
         Prints the start and name of the next 10 events on the user's calendar.
         """
@@ -126,10 +127,26 @@ def getting_events(update, context):
 
     # Call the Calendar API
     now = dt.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-    print('Getting the upcoming 10 events')
-    events_result = service.events().list(calendarId='primary', timeMin=now,
-                                          maxResults=5, singleEvents=True,
+    tomorrow_date = (datetime.today() + timedelta(days=1)).date()   # tomorrow's date
+    end_today = tomorrow_date.isoformat()
+    tomorrow_string = tomorrow_date.strftime("%Y-%m-%d")
+    #print('Getting the upcoming 10 events')
+    date_string = tomorrow_string+"T00:00:01"
+    #print(date_string)
+    tomorrow_date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S").isoformat() + 'Z'
+    #print(tomorrow_date)
+    #print(now)
+    if num_of_events == str(0):
+        print('pee')
+        events_result = service.events().list(calendarId='primary', timeMin=now, timeMax=tomorrow_date,
+                                              singleEvents=True,
                                           orderBy='startTime').execute()
+
+    else:
+        print('poo')
+        events_result = service.events().list(calendarId='primary', timeMin=now,
+                                              maxResults=num_of_events, singleEvents=True,
+                                              orderBy='startTime').execute()
     events = events_result.get('items', [])
 
     if not events:
@@ -246,7 +263,6 @@ def main():
     # Handler class listening for telegram commands
     dp.add_handler(CommandHandler("start", test_func.start))
     dp.add_handler(CommandHandler("help", test_func.help))
-
     # on non - command i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, test_func.echo))
     dp.add_handler(CommandHandler("caps", test_func.caps))
@@ -262,7 +278,7 @@ def main():
                                   pass_job_queue=True,
                                   pass_chat_data=True))
 
-    dp.add_handler(CommandHandler("today_schedule", getting_events))
+    dp.add_handler(CommandHandler("today_schedule", my_schedule))
 
     dp.add_handler(MessageHandler(Filters.command, unknown))
 
