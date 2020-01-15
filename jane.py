@@ -126,18 +126,18 @@ def my_schedule(update, context):
     service = build('calendar', 'v3', credentials=creds)
 
     # Call the Calendar API
-    now = dt.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    now = dt.datetime.now().isoformat() + "+08:00"  # 'Z' indicates UTC time
     tomorrow_date = (datetime.today() + timedelta(days=1)).date()   # tomorrow's date
     end_today = tomorrow_date.isoformat()
     tomorrow_string = tomorrow_date.strftime("%Y-%m-%d")
     #print('Getting the upcoming 10 events')
     date_string = tomorrow_string+"T00:00:01"
     #print(date_string)
-    tomorrow_date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S").isoformat() + 'Z'
+    tomorrow_date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S").isoformat() + "+08:00"
     #print(tomorrow_date)
     #print(now)
     if num_of_events == str(0):
-        print('pee')
+     #   print('pee')
         events_result = service.events().list(calendarId='primary', timeMin=now, timeMax=tomorrow_date,
                                               singleEvents=True,
                                           orderBy='startTime').execute()
